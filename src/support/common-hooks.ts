@@ -22,6 +22,21 @@ declare global {
   var browser: ChromiumBrowser | FirefoxBrowser | WebKitBrowser;
 }
 
+const capabilities = {
+  'browserName': 'Chrome', // Browsers allowed: `Chrome`, `MicrosoftEdge`, `pw-chromium`, `pw-firefox` and `pw-webkit`
+  'browserVersion': 'latest',
+  'LT:Options': {
+    'platform': 'Windows 10',
+    'build': 'Playwright Sample Build',
+    'name': 'Playwright Sample Test',
+    'user': process.env.LT_USERNAME,
+    'accessKey': process.env.LT_ACCESS_KEY,
+    'network': true,
+    'video': true,
+    'console': true,
+  }
+}
+
 setDefaultTimeout(process.env.PWDEBUG ? -1 : 60 * 1000);
 
 BeforeAll(async function () {
@@ -31,6 +46,13 @@ BeforeAll(async function () {
       break;
     case 'webkit':
       browser = await webkit.launch(config.browserOptions);
+      break;
+    case 'lambda':
+      browser = await chromium.connect({
+        wsEndpoint: `wss://cdp.lambdatest.com/playwright?capabilities=${encodeURIComponent(
+          JSON.stringify(capabilities),
+        )}`,
+      });
       break;
     default:
       browser = await chromium.launch(config.browserOptions);
